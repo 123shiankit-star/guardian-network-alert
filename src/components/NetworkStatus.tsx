@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Wifi, WifiOff, Signal, SignalLow, SignalMedium, SignalHigh } from "lucide-react";
+import { Wifi, WifiOff, SignalLow, SignalHigh, X, AlertTriangle } from "lucide-react";
 
 type NetworkState = "online" | "weak" | "offline";
 
@@ -14,7 +14,6 @@ export const NetworkStatus = () => {
         setNetworkState("offline");
         setShowAlert(true);
       } else {
-        // Simulate weak network detection
         const connection = (navigator as any).connection;
         if (connection) {
           const effectiveType = connection.effectiveType;
@@ -31,7 +30,6 @@ export const NetworkStatus = () => {
     };
 
     checkConnection();
-
     window.addEventListener("online", checkConnection);
     window.addEventListener("offline", checkConnection);
 
@@ -53,87 +51,105 @@ export const NetworkStatus = () => {
     switch (networkState) {
       case "online":
         return {
-          icon: <SignalHigh className="w-5 h-5" />,
+          icon: SignalHigh,
           label: "Connected",
           bgClass: "bg-secondary/20",
           textClass: "text-secondary",
           dotClass: "bg-secondary",
+          glowClass: "shadow-[0_0_10px_hsl(var(--secondary)/0.5)]",
         };
       case "weak":
         return {
-          icon: <SignalLow className="w-5 h-5" />,
-          label: "Weak Signal",
+          icon: SignalLow,
+          label: "Weak",
           bgClass: "bg-warning/20",
           textClass: "text-warning",
           dotClass: "bg-warning",
+          glowClass: "shadow-[0_0_10px_hsl(var(--warning-glow)/0.5)]",
         };
       case "offline":
         return {
-          icon: <WifiOff className="w-5 h-5" />,
-          label: "Offline Mode",
+          icon: WifiOff,
+          label: "Offline",
           bgClass: "bg-primary/20",
           textClass: "text-primary",
           dotClass: "bg-primary",
+          glowClass: "shadow-[0_0_10px_hsl(var(--primary)/0.5)]",
         };
     }
   };
 
   const config = getStatusConfig();
+  const Icon = config.icon;
 
   return (
     <>
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${config.bgClass} ${config.textClass}`}
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full glass ${config.textClass} ${config.glowClass}`}
       >
-        <span className={`w-2 h-2 rounded-full ${config.dotClass} animate-pulse`} />
-        {config.icon}
+        <motion.span
+          className={`w-2 h-2 rounded-full ${config.dotClass}`}
+          animate={{ scale: [1, 1.2, 1], opacity: [1, 0.7, 1] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        />
+        <Icon className="w-4 h-4" />
         <span className="text-sm font-medium">{config.label}</span>
       </motion.div>
 
       <AnimatePresence>
         {showAlert && networkState !== "online" && (
           <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            initial={{ opacity: 0, y: -50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            exit={{ opacity: 0, y: -50, scale: 0.9 }}
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
             className="fixed top-4 left-4 right-4 z-50"
           >
             <div
-              className={`p-4 rounded-xl border ${
+              className={`p-4 rounded-2xl glass-strong border ${
                 networkState === "offline"
-                  ? "bg-primary/10 border-primary/30"
-                  : "bg-warning/10 border-warning/30"
+                  ? "border-primary/30"
+                  : "border-warning/30"
               }`}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {networkState === "offline" ? (
-                    <WifiOff className="w-6 h-6 text-primary" />
-                  ) : (
-                    <SignalLow className="w-6 h-6 text-warning" />
-                  )}
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <motion.div
+                    animate={{ rotate: [0, -10, 10, -10, 0] }}
+                    transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
+                    className={`p-2 rounded-xl ${
+                      networkState === "offline" ? "bg-primary/20" : "bg-warning/20"
+                    }`}
+                  >
+                    <AlertTriangle
+                      className={`w-6 h-6 ${
+                        networkState === "offline" ? "text-primary" : "text-warning"
+                      }`}
+                    />
+                  </motion.div>
                   <div>
-                    <p className="font-semibold text-foreground">
-                      {networkState === "offline" ? "No Network Connection" : "Weak Network Detected"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="font-display font-bold text-foreground">
                       {networkState === "offline"
-                        ? "Emergency features are still active"
-                        : "Some features may be limited"}
+                        ? "No Network Connection"
+                        : "Weak Network Detected"}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {networkState === "offline"
+                        ? "Don't worry! Emergency features are still active"
+                        : "Some features may be limited, but you're protected"}
                     </p>
                   </div>
                 </div>
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => setShowAlert(false)}
-                  className="p-2 hover:bg-muted rounded-lg transition-colors"
+                  className="p-2 rounded-xl hover:bg-muted transition-colors"
                 >
-                  <span className="sr-only">Dismiss</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </motion.button>
               </div>
             </div>
           </motion.div>

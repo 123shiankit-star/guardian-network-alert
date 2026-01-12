@@ -14,7 +14,6 @@ export const NetworkStatus = () => {
         setNetworkState("offline");
         setShowAlert(true);
       } else {
-        // Simulate weak network detection
         const connection = (navigator as any).connection;
         if (connection) {
           const effectiveType = connection.effectiveType;
@@ -55,28 +54,28 @@ export const NetworkStatus = () => {
         return {
           icon: <SignalHigh className="w-4 h-4" />,
           label: "Connected",
-          bgClass: "from-secondary/30 to-secondary/10",
-          textClass: "text-secondary",
-          dotClass: "bg-secondary",
-          glowColor: "var(--secondary)",
+          gradient: "from-emerald-500/30 to-teal-500/10",
+          textColor: "text-emerald-400",
+          dotColor: "bg-emerald-400",
+          glowColor: "hsl(160 80% 45%)",
         };
       case "weak":
         return {
           icon: <SignalLow className="w-4 h-4" />,
           label: "Weak Signal",
-          bgClass: "from-orange-500/30 to-orange-500/10",
-          textClass: "text-orange-400",
-          dotClass: "bg-orange-400",
-          glowColor: "38 92% 55%",
+          gradient: "from-amber-500/30 to-orange-500/10",
+          textColor: "text-amber-400",
+          dotColor: "bg-amber-400",
+          glowColor: "hsl(38 92% 55%)",
         };
       case "offline":
         return {
           icon: <WifiOff className="w-4 h-4" />,
           label: "Offline Mode",
-          bgClass: "from-primary/30 to-primary/10",
-          textClass: "text-primary",
-          dotClass: "bg-primary",
-          glowColor: "var(--primary)",
+          gradient: "from-purple-500/30 to-violet-500/10",
+          textColor: "text-purple-400",
+          dotColor: "bg-purple-400",
+          glowColor: "hsl(280 80% 65%)",
         };
     }
   };
@@ -90,29 +89,40 @@ export const NetworkStatus = () => {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: "spring", stiffness: 150 }}
         whileHover={{ scale: 1.05 }}
-        className={`relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${config.bgClass} ${config.textClass} overflow-hidden cursor-default`}
+        className={`relative inline-flex items-center gap-2 px-4 py-2 rounded-full overflow-hidden cursor-default ${config.textColor}`}
+        style={{
+          background: `linear-gradient(135deg, var(--tw-gradient-stops))`,
+          border: `1px solid ${config.glowColor} / 0.3`,
+        }}
       >
-        {/* Animated background shimmer */}
+        <div className={`absolute inset-0 bg-gradient-to-r ${config.gradient}`} />
+        
+        {/* Shimmer effect */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-          animate={{ x: ["-100%", "100%"] }}
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.05), transparent)',
+          }}
+          animate={{ x: ['-100%', '100%'] }}
           transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
         />
         
         {/* Pulsing dot */}
         <motion.span 
-          className={`relative w-2 h-2 rounded-full ${config.dotClass}`}
-          animate={{ scale: [1, 1.2, 1] }}
+          className={`relative w-2 h-2 rounded-full ${config.dotColor}`}
+          style={{ boxShadow: `0 0 8px ${config.glowColor}` }}
+          animate={{ scale: [1, 1.3, 1] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
           <motion.span
-            className={`absolute inset-0 rounded-full ${config.dotClass}`}
-            animate={{ scale: [1, 2], opacity: [0.6, 0] }}
+            className={`absolute inset-0 rounded-full ${config.dotColor}`}
+            animate={{ scale: [1, 2.5], opacity: [0.6, 0] }}
             transition={{ duration: 1.5, repeat: Infinity }}
           />
         </motion.span>
         
         <motion.span
+          className="relative z-10"
           animate={{ rotate: networkState === "offline" ? [0, 10, -10, 0] : 0 }}
           transition={{ duration: 0.5, repeat: networkState === "offline" ? Infinity : 0, repeatDelay: 2 }}
         >
@@ -132,50 +142,39 @@ export const NetworkStatus = () => {
             className="fixed top-4 left-4 right-4 z-50"
           >
             <motion.div
-              className={`relative p-5 rounded-2xl glass-card overflow-hidden border-2 ${
-                networkState === "offline"
-                  ? "border-primary/40"
-                  : "border-orange-500/40"
-              }`}
+              className="relative p-5 rounded-2xl overflow-hidden"
+              style={{
+                background: 'linear-gradient(135deg, hsl(250 30% 12%) 0%, hsl(250 30% 8%) 100%)',
+                border: `2px solid ${networkState === "offline" ? 'hsl(var(--primary) / 0.4)' : 'hsl(38 92% 55% / 0.4)'}`,
+                boxShadow: networkState === "offline" 
+                  ? '0 0 40px hsl(var(--primary) / 0.2)'
+                  : '0 0 40px hsl(38 92% 55% / 0.2)',
+              }}
             >
               {/* Animated gradient background */}
               <motion.div
-                className={`absolute inset-0 ${
-                  networkState === "offline"
-                    ? "bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10"
-                    : "bg-gradient-to-r from-orange-500/10 via-orange-500/5 to-orange-500/10"
-                }`}
-                animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-                transition={{ duration: 5, repeat: Infinity }}
-              />
-              
-              {/* Pulsing border glow */}
-              <motion.div
-                className="absolute inset-0 rounded-2xl"
-                animate={{
-                  boxShadow: networkState === "offline"
-                    ? [
-                        "inset 0 0 20px hsl(var(--primary) / 0.1)",
-                        "inset 0 0 40px hsl(var(--primary) / 0.2)",
-                        "inset 0 0 20px hsl(var(--primary) / 0.1)",
-                      ]
-                    : [
-                        "inset 0 0 20px hsl(38 92% 55% / 0.1)",
-                        "inset 0 0 40px hsl(38 92% 55% / 0.2)",
-                        "inset 0 0 20px hsl(38 92% 55% / 0.1)",
-                      ],
+                className="absolute inset-0"
+                style={{
+                  background: networkState === "offline"
+                    ? 'radial-gradient(circle at top left, hsl(var(--primary) / 0.1), transparent 60%)'
+                    : 'radial-gradient(circle at top left, hsl(38 92% 55% / 0.1), transparent 60%)',
                 }}
-                transition={{ duration: 2, repeat: Infinity }}
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 3, repeat: Infinity }}
               />
               
               <div className="flex items-center justify-between relative z-10">
                 <div className="flex items-center gap-4">
                   <motion.div
-                    className={`p-3 rounded-xl ${
-                      networkState === "offline"
-                        ? "bg-gradient-to-br from-primary to-primary/70"
-                        : "bg-gradient-to-br from-orange-500 to-orange-600"
-                    }`}
+                    className="p-3 rounded-xl"
+                    style={{
+                      background: networkState === "offline"
+                        ? 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%)'
+                        : 'linear-gradient(135deg, hsl(38 92% 55%) 0%, hsl(25 90% 50%) 100%)',
+                      boxShadow: networkState === "offline"
+                        ? '0 0 20px hsl(var(--primary) / 0.5)'
+                        : '0 0 20px hsl(38 92% 55% / 0.5)',
+                    }}
                     animate={{ scale: [1, 1.1, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
@@ -202,7 +201,10 @@ export const NetworkStatus = () => {
                   onClick={() => setShowAlert(false)}
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
-                  className="p-2.5 rounded-xl hover:bg-muted/50 transition-colors"
+                  className="p-2.5 rounded-xl transition-colors"
+                  style={{
+                    background: 'hsl(var(--muted))',
+                  }}
                 >
                   <X className="w-5 h-5 text-muted-foreground" />
                 </motion.button>

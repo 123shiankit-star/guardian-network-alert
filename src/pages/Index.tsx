@@ -1,5 +1,5 @@
 import { motion, Variants } from "framer-motion";
-import { Shield, Sparkles } from "lucide-react";
+import { Shield, Sparkles, Lock } from "lucide-react";
 import { NetworkStatus } from "@/components/NetworkStatus";
 import { SOSButton } from "@/components/SOSButton";
 import { EmergencyTypes } from "@/components/EmergencyTypes";
@@ -38,7 +38,10 @@ const Index = () => {
       <AnimatedBackground />
       
       {/* Header */}
-      <header className="sticky top-0 z-40 glass-card border-t-0 border-x-0">
+      <header className="sticky top-0 z-40 backdrop-blur-xl border-b" style={{
+        background: 'linear-gradient(180deg, hsl(250 30% 8% / 0.9) 0%, hsl(250 30% 6% / 0.8) 100%)',
+        borderColor: 'hsl(var(--primary) / 0.15)',
+      }}>
         <div className="container max-w-lg mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <motion.div
@@ -48,30 +51,41 @@ const Index = () => {
               className="flex items-center gap-3"
             >
               <motion.div 
-                className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-accent flex items-center justify-center overflow-hidden"
+                className="relative w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%)',
+                  boxShadow: '0 0 30px hsl(var(--primary) / 0.4)',
+                }}
                 whileHover={{ scale: 1.05, rotate: 5 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-t from-transparent to-white/20"
-                  animate={{ opacity: [0.3, 0.5, 0.3] }}
-                  transition={{ duration: 2, repeat: Infinity }}
+                  className="absolute inset-0"
+                  style={{
+                    background: 'linear-gradient(180deg, hsl(var(--foreground) / 0.2) 0%, transparent 50%)',
+                  }}
                 />
-                <Shield className="w-7 h-7 text-primary-foreground relative z-10" />
+                <Lock className="w-6 h-6 text-primary-foreground relative z-10" />
                 <motion.div
-                  className="absolute -inset-1 bg-primary/50 blur-xl"
-                  animate={{ opacity: [0.5, 0.8, 0.5] }}
+                  className="absolute inset-0"
+                  animate={{ 
+                    boxShadow: [
+                      'inset 0 0 20px hsl(var(--foreground) / 0.1)',
+                      'inset 0 0 40px hsl(var(--foreground) / 0.2)',
+                      'inset 0 0 20px hsl(var(--foreground) / 0.1)',
+                    ]
+                  }}
                   transition={{ duration: 2, repeat: Infinity }}
                 />
               </motion.div>
               <div>
-                <h1 className="font-display font-bold text-xl text-gradient-hero flex items-center gap-2">
-                  GuardMe
+                <h1 className="font-display font-bold text-xl flex items-center gap-2">
+                  <span className="text-gradient-hero">GuardMe</span>
                   <motion.span
                     animate={{ rotate: [0, 15, -15, 0] }}
                     transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
                   >
-                    <Sparkles className="w-4 h-4 text-primary" />
+                    <Sparkles className="w-4 h-4 text-secondary" />
                   </motion.span>
                 </h1>
                 <p className="text-xs text-muted-foreground">Your Safety Shield</p>
@@ -96,15 +110,29 @@ const Index = () => {
             className="text-center relative"
           >
             <motion.div
-              className="absolute -inset-20 bg-gradient-radial from-primary/10 via-transparent to-transparent blur-3xl"
-              animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
-              transition={{ duration: 4, repeat: Infinity }}
+              className="absolute -inset-32 rounded-full"
+              style={{
+                background: 'radial-gradient(circle, hsl(var(--primary) / 0.1) 0%, transparent 70%)',
+              }}
+              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+              transition={{ duration: 5, repeat: Infinity }}
             />
-            <h2 className="text-3xl font-display font-bold text-gradient-hero mb-3 relative">
-              Emergency SOS
+            <h2 className="text-4xl font-display font-bold mb-3 relative">
+              <span className="text-gradient-hero">Emergency</span>{" "}
+              <span className="text-foreground">SOS</span>
             </h2>
-            <p className="text-muted-foreground relative">
+            <p className="text-muted-foreground relative flex items-center justify-center gap-2">
+              <motion.span
+                className="w-2 h-2 rounded-full bg-secondary"
+                animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
               Stay protected, even offline
+              <motion.span
+                className="w-2 h-2 rounded-full bg-primary"
+                animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+              />
             </p>
           </motion.div>
 

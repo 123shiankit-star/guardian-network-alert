@@ -8,25 +8,29 @@ const features = [
     icon: Radio,
     label: "Bluetooth Alert",
     description: "Send alerts via Bluetooth",
-    activeColor: "from-blue-500 to-blue-600",
+    gradient: "from-blue-500 to-indigo-600",
+    glowColor: "hsl(220 90% 60%)",
   },
   {
     icon: MapPin,
     label: "GPS Tracking",
     description: "Share last known location",
-    activeColor: "from-green-500 to-green-600",
+    gradient: "from-emerald-500 to-teal-600",
+    glowColor: "hsl(160 80% 45%)",
   },
   {
     icon: Volume2,
     label: "Siren Mode",
     description: "Loud alarm sound",
-    activeColor: "from-red-500 to-red-600",
+    gradient: "from-rose-500 to-red-600",
+    glowColor: "hsl(350 80% 55%)",
   },
   {
     icon: Flashlight,
     label: "SOS Flash",
     description: "Flash SOS signal",
-    activeColor: "from-yellow-500 to-yellow-600",
+    gradient: "from-amber-500 to-yellow-600",
+    glowColor: "hsl(45 90% 55%)",
   },
 ];
 
@@ -76,12 +80,22 @@ export const OfflineFeatures = () => {
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center gap-2 mb-2"
       >
-        <span className="w-1 h-6 bg-gradient-to-b from-accent to-secondary rounded-full" />
+        <span 
+          className="w-1 h-6 rounded-full"
+          style={{
+            background: 'linear-gradient(180deg, hsl(var(--secondary)) 0%, hsl(var(--primary)) 100%)',
+          }}
+        />
         <h2 className="text-lg font-display font-semibold text-foreground">
           Offline Features
         </h2>
         <motion.div
-          className="flex items-center gap-1 px-2 py-1 rounded-full bg-secondary/20 text-secondary text-xs font-medium"
+          className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium"
+          style={{
+            background: 'linear-gradient(135deg, hsl(var(--secondary) / 0.2) 0%, hsl(var(--secondary) / 0.1) 100%)',
+            color: 'hsl(var(--secondary))',
+            border: '1px solid hsl(var(--secondary) / 0.3)',
+          }}
           animate={{ scale: [1, 1.05, 1] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
@@ -108,67 +122,54 @@ export const OfflineFeatures = () => {
               onClick={() => toggleFeature(feature.label)}
               whileHover={{ scale: 1.03, y: -3 }}
               whileTap={{ scale: 0.97 }}
-              className={`relative flex flex-col items-start gap-3 p-4 rounded-2xl overflow-hidden transition-all duration-500 ${
-                isActive
-                  ? "glass-card"
-                  : "glass-card-hover"
-              }`}
+              className="relative flex flex-col items-start gap-3 p-4 rounded-2xl overflow-hidden transition-all duration-500"
+              style={{
+                background: isActive
+                  ? `linear-gradient(135deg, hsl(250 30% 15%) 0%, hsl(250 30% 10%) 100%)`
+                  : 'linear-gradient(135deg, hsl(250 30% 12%) 0%, hsl(250 30% 8%) 100%)',
+                border: `1px solid ${isActive ? feature.glowColor : 'hsl(var(--border))'}`,
+                boxShadow: isActive ? `0 0 30px ${feature.glowColor} / 0.2, inset 0 0 30px ${feature.glowColor} / 0.05` : 'none',
+              }}
             >
-              {/* Active state background */}
-              <motion.div
-                className={`absolute inset-0 bg-gradient-to-br ${feature.activeColor} opacity-0`}
-                animate={{ opacity: isActive ? 0.15 : 0 }}
-                transition={{ duration: 0.3 }}
-              />
-              
-              {/* Active border glow */}
-              <motion.div
-                className="absolute inset-0 rounded-2xl"
-                animate={{
-                  boxShadow: isActive
-                    ? "inset 0 0 30px hsl(var(--secondary) / 0.2), 0 0 20px hsl(var(--secondary) / 0.1)"
-                    : "inset 0 0 0 hsl(var(--secondary) / 0), 0 0 0 hsl(var(--secondary) / 0)",
-                }}
-                transition={{ duration: 0.3 }}
-              />
+              {/* Active glow background */}
+              {isActive && (
+                <motion.div
+                  className="absolute inset-0"
+                  style={{
+                    background: `radial-gradient(circle at top left, ${feature.glowColor} / 0.15, transparent 60%)`,
+                  }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                />
+              )}
               
               {/* Icon container */}
               <motion.div
-                className={`relative w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 overflow-hidden`}
+                className={`relative w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden transition-all duration-300`}
                 style={{
                   background: isActive
                     ? `linear-gradient(135deg, var(--tw-gradient-stops))`
-                    : "hsl(var(--muted))",
+                    : 'hsl(var(--muted))',
                 }}
-                animate={{
-                  scale: isActive ? [1, 1.1, 1] : 1,
-                }}
-                transition={{ duration: 0.5 }}
               >
-                <motion.div
-                  className={`absolute inset-0 bg-gradient-to-br ${feature.activeColor}`}
-                  animate={{ opacity: isActive ? 1 : 0 }}
-                  transition={{ duration: 0.3 }}
-                />
+                <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-0'}`} />
                 
                 <feature.icon 
                   className={`w-6 h-6 relative z-10 transition-colors duration-300 ${
                     isActive ? "text-white" : "text-muted-foreground"
                   }`} 
+                  style={{
+                    filter: isActive ? `drop-shadow(0 0 10px ${feature.glowColor})` : 'none',
+                  }}
                 />
                 
-                {/* Icon glow effect */}
-                {isActive && (
-                  <motion.div
-                    className="absolute inset-0"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: [0.5, 1, 0.5] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                    style={{
-                      boxShadow: "inset 0 0 20px rgba(255,255,255,0.3)",
-                    }}
-                  />
-                )}
+                {/* Inner shine */}
+                <div 
+                  className="absolute inset-0 opacity-50"
+                  style={{
+                    background: 'linear-gradient(180deg, hsl(0 0% 100% / 0.2) 0%, transparent 50%)',
+                  }}
+                />
               </motion.div>
               
               <div className="text-left relative z-10">
@@ -182,32 +183,37 @@ export const OfflineFeatures = () => {
                 </p>
               </div>
 
-              {/* Active indicator dot */}
+              {/* Active indicator */}
               <motion.div
-                className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-secondary"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{
-                  scale: isActive ? 1 : 0,
-                  opacity: isActive ? 1 : 0,
+                className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full"
+                style={{
+                  background: isActive ? feature.glowColor : 'transparent',
+                  boxShadow: isActive ? `0 0 10px ${feature.glowColor}` : 'none',
                 }}
+                initial={{ scale: 0 }}
+                animate={{ scale: isActive ? 1 : 0 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 {isActive && (
                   <motion.div
-                    className="absolute inset-0 rounded-full bg-secondary"
-                    animate={{ scale: [1, 2, 1], opacity: [1, 0, 1] }}
+                    className="absolute inset-0 rounded-full"
+                    style={{ background: feature.glowColor }}
+                    animate={{ scale: [1, 2.5, 1], opacity: [1, 0, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   />
                 )}
               </motion.div>
 
-              {/* Shimmer effect on active */}
+              {/* Shimmer on active */}
               {isActive && (
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-                  initial={{ x: "-100%" }}
-                  animate={{ x: "100%" }}
-                  transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2 }}
+                  className="absolute inset-0"
+                  style={{
+                    background: 'linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.05), transparent)',
+                  }}
+                  initial={{ x: '-100%' }}
+                  animate={{ x: '100%' }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
                 />
               )}
             </motion.button>

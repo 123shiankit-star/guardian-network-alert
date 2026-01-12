@@ -50,15 +50,30 @@ export const EmergencyContacts = () => {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
         >
-          <span className="w-1 h-6 bg-gradient-to-b from-secondary to-accent rounded-full" />
+          <span 
+            className="w-1 h-6 rounded-full"
+            style={{
+              background: 'linear-gradient(180deg, hsl(var(--secondary)) 0%, hsl(220 90% 60%) 100%)',
+            }}
+          />
           Emergency Contacts
         </motion.h2>
         <motion.button 
-          className="p-2.5 rounded-xl glass-card-hover group"
+          className="p-2.5 rounded-xl group relative overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, hsl(250 30% 12%) 0%, hsl(250 30% 8%) 100%)',
+            border: '1px solid hsl(var(--border))',
+          }}
           whileHover={{ scale: 1.1, rotate: 90 }}
           whileTap={{ scale: 0.9 }}
         >
-          <Plus className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+          <Plus className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors relative z-10" />
+          <motion.div
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{
+              background: 'radial-gradient(circle, hsl(var(--primary) / 0.2), transparent)',
+            }}
+          />
         </motion.button>
       </div>
       
@@ -73,42 +88,49 @@ export const EmergencyContacts = () => {
             key={contact.id}
             variants={itemVariants}
             whileHover={{ scale: 1.02, x: 5 }}
-            className="relative flex items-center gap-4 p-4 rounded-2xl glass-card-hover group overflow-hidden"
+            className="relative flex items-center gap-4 p-4 rounded-2xl group overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, hsl(250 30% 12%) 0%, hsl(250 30% 8%) 100%)',
+              border: '1px solid hsl(var(--border))',
+            }}
           >
-            {/* Animated background gradient on hover */}
+            {/* Hover gradient */}
             <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-secondary/10 via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+              style={{
+                background: 'linear-gradient(90deg, hsl(var(--secondary) / 0.1) 0%, transparent 50%, hsl(var(--primary) / 0.1) 100%)',
+              }}
             />
             
-            {/* Shimmer effect */}
+            {/* Border glow on hover */}
             <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100"
-              initial={{ x: "-100%" }}
-              whileHover={{ x: "100%" }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
+              className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{
+                boxShadow: 'inset 0 0 0 1px hsl(var(--primary) / 0.3), 0 0 20px hsl(var(--primary) / 0.1)',
+              }}
             />
             
             <div className="relative">
               <motion.div 
-                className="w-14 h-14 rounded-2xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center overflow-hidden"
+                className="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden"
+                style={{
+                  background: contact.isPrimary 
+                    ? 'linear-gradient(135deg, hsl(var(--primary) / 0.3) 0%, hsl(var(--secondary) / 0.2) 100%)'
+                    : 'hsl(var(--muted))',
+                  border: contact.isPrimary ? '1px solid hsl(var(--primary) / 0.3)' : 'none',
+                }}
                 whileHover={{ scale: 1.1 }}
               >
-                <User className="w-7 h-7 text-muted-foreground" />
-                
-                {/* Avatar ring glow */}
-                <motion.div
-                  className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{
-                    boxShadow: contact.isPrimary 
-                      ? "inset 0 0 15px hsl(var(--primary) / 0.3)"
-                      : "inset 0 0 15px hsl(var(--secondary) / 0.3)",
-                  }}
-                />
+                <User className={`w-7 h-7 ${contact.isPrimary ? 'text-primary' : 'text-muted-foreground'}`} />
               </motion.div>
               
               {contact.isPrimary && (
                 <motion.div 
-                  className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg"
+                  className="absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center"
+                  style={{
+                    background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%)',
+                    boxShadow: '0 0 15px hsl(var(--primary) / 0.5)',
+                  }}
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: index * 0.1 + 0.3, type: "spring" }}
@@ -116,13 +138,12 @@ export const EmergencyContacts = () => {
                   <Star className="w-3.5 h-3.5 text-primary-foreground" />
                   <motion.div
                     className="absolute inset-0 rounded-full"
+                    style={{ background: 'hsl(var(--primary))' }}
                     animate={{ 
-                      boxShadow: [
-                        "0 0 0 0 hsl(var(--primary) / 0.4)",
-                        "0 0 0 6px hsl(var(--primary) / 0)",
-                      ]
+                      scale: [1, 2, 1],
+                      opacity: [0.5, 0, 0.5],
                     }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
+                    transition={{ duration: 2, repeat: Infinity }}
                   />
                 </motion.div>
               )}
@@ -136,7 +157,7 @@ export const EmergencyContacts = () => {
                     animate={{ rotate: [0, 15, -15, 0] }}
                     transition={{ duration: 2, repeat: Infinity, repeatDelay: 2 }}
                   >
-                    <Sparkles className="w-4 h-4 text-primary" />
+                    <Sparkles className="w-4 h-4 text-secondary" />
                   </motion.span>
                 )}
               </p>
@@ -144,15 +165,20 @@ export const EmergencyContacts = () => {
             </div>
             
             <motion.button 
-              className="relative p-3.5 rounded-2xl bg-gradient-to-br from-secondary/20 to-secondary/10 text-secondary overflow-hidden opacity-0 group-hover:opacity-100 transition-all duration-300"
+              className="relative p-3.5 rounded-2xl overflow-hidden opacity-0 group-hover:opacity-100 transition-all duration-300"
+              style={{
+                background: 'linear-gradient(135deg, hsl(var(--secondary) / 0.2) 0%, hsl(var(--secondary) / 0.1) 100%)',
+                border: '1px solid hsl(var(--secondary) / 0.3)',
+              }}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             >
-              <Phone className="w-5 h-5 relative z-10" />
+              <Phone className="w-5 h-5 text-secondary relative z-10" />
               <motion.div
-                className="absolute inset-0 bg-secondary/30"
+                className="absolute inset-0"
+                style={{ background: 'hsl(var(--secondary) / 0.2)' }}
                 initial={{ scale: 0, opacity: 0 }}
-                whileHover={{ scale: 1.5, opacity: 0.5 }}
+                whileHover={{ scale: 2, opacity: 0.5 }}
                 transition={{ duration: 0.3 }}
               />
             </motion.button>

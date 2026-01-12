@@ -27,7 +27,6 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
           duration: 5000,
         });
         
-        // Vibrate if available
         if (navigator.vibrate) {
           navigator.vibrate([200, 100, 200, 100, 200]);
         }
@@ -57,34 +56,60 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
   return (
     <div className="flex flex-col items-center gap-8">
       <div className="relative">
-        {/* Outer glow ring */}
+        {/* Outer glow effect */}
         <motion.div
-          className="absolute inset-[-20px] rounded-full"
+          className="absolute inset-[-40px] rounded-full"
           style={{
-            background: `radial-gradient(circle, hsl(var(--primary) / ${isPressed ? 0.3 : 0.1}) 0%, transparent 70%)`,
+            background: `radial-gradient(circle, hsl(var(--primary) / ${isPressed ? 0.4 : 0.15}) 0%, transparent 70%)`,
           }}
           animate={{
-            scale: isPressed ? [1, 1.2, 1] : 1,
-            opacity: isPressed ? [0.5, 1, 0.5] : 0.3,
+            scale: isPressed ? [1, 1.3, 1] : [1, 1.1, 1],
+            opacity: isPressed ? [0.6, 1, 0.6] : [0.3, 0.5, 0.3],
           }}
-          transition={{ duration: 1, repeat: Infinity }}
+          transition={{ duration: 2, repeat: Infinity }}
         />
 
-        {/* Multiple pulsing rings */}
+        {/* Hexagonal orbit rings */}
+        <motion.div
+          className="absolute inset-[-30px]"
+          style={{
+            border: '1px solid hsl(var(--secondary) / 0.3)',
+            clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
+          }}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        />
+        <motion.div
+          className="absolute inset-[-50px]"
+          style={{
+            border: '1px solid hsl(var(--primary) / 0.2)',
+            clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
+          }}
+          animate={{ rotate: -360 }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+        />
+
+        {/* Pulsing rings on press */}
         <AnimatePresence>
           {isPressed && (
             <>
-              {[0, 1, 2].map((i) => (
+              {[0, 1, 2, 3].map((i) => (
                 <motion.div
                   key={i}
-                  className="absolute inset-0 rounded-full border-2 border-primary/40"
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    border: '2px solid',
+                    borderImage: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary))) 1',
+                    borderRadius: '50%',
+                    borderColor: i % 2 === 0 ? 'hsl(var(--primary) / 0.5)' : 'hsl(var(--secondary) / 0.5)',
+                  }}
                   initial={{ scale: 1, opacity: 0.8 }}
-                  animate={{ scale: 2 + i * 0.3, opacity: 0 }}
+                  animate={{ scale: 2.5 + i * 0.3, opacity: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{
                     duration: 1.5,
                     repeat: Infinity,
-                    delay: i * 0.4,
+                    delay: i * 0.3,
                     ease: "easeOut",
                   }}
                 />
@@ -97,16 +122,20 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
         <AnimatePresence>
           {isActivated && (
             <>
-              {[0, 1, 2, 3].map((i) => (
+              {[0, 1, 2, 3, 4].map((i) => (
                 <motion.div
                   key={`active-${i}`}
-                  className="absolute inset-0 rounded-full border-2 border-primary"
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    border: '2px solid',
+                    borderColor: i % 2 === 0 ? 'hsl(var(--primary))' : 'hsl(var(--secondary))',
+                  }}
                   initial={{ scale: 1, opacity: 1 }}
-                  animate={{ scale: 2.5 + i * 0.2, opacity: 0 }}
+                  animate={{ scale: 3 + i * 0.2, opacity: 0 }}
                   transition={{
                     duration: 2,
                     repeat: Infinity,
-                    delay: i * 0.5,
+                    delay: i * 0.4,
                     ease: "easeOut",
                   }}
                 />
@@ -115,15 +144,15 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
           )}
         </AnimatePresence>
 
-        {/* Progress ring */}
-        <svg className="absolute inset-[-8px] w-[calc(100%+16px)] h-[calc(100%+16px)] -rotate-90" viewBox="0 0 100 100">
+        {/* Progress ring SVG */}
+        <svg className="absolute inset-[-12px] w-[calc(100%+24px)] h-[calc(100%+24px)] -rotate-90" viewBox="0 0 100 100">
           <circle
             cx="50"
             cy="50"
             r="46"
             fill="none"
-            stroke="hsl(var(--primary) / 0.15)"
-            strokeWidth="3"
+            stroke="hsl(var(--primary) / 0.1)"
+            strokeWidth="2"
           />
           <motion.circle
             cx="50"
@@ -135,12 +164,15 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
             strokeLinecap="round"
             strokeDasharray={289}
             strokeDashoffset={289 - (289 * holdProgress) / 100}
-            className="transition-all duration-75"
+            style={{
+              filter: 'drop-shadow(0 0 6px hsl(var(--primary)))',
+            }}
           />
           <defs>
             <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="hsl(var(--primary))" />
-              <stop offset="100%" stopColor="hsl(var(--accent))" />
+              <stop offset="50%" stopColor="hsl(var(--secondary))" />
+              <stop offset="100%" stopColor="hsl(var(--primary))" />
             </linearGradient>
           </defs>
         </svg>
@@ -151,69 +183,94 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
           onTouchStart={handlePressStart}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className={`relative w-48 h-48 rounded-full flex flex-col items-center justify-center gap-2 transition-all duration-500 select-none overflow-hidden ${
-            isActivated
-              ? "glow-primary animate-glow-pulse"
-              : isPressed
-              ? "glow-primary"
-              : ""
-          }`}
+          className="relative w-52 h-52 rounded-full flex flex-col items-center justify-center gap-3 select-none overflow-hidden"
           style={{
             background: isActivated
-              ? "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--destructive)) 100%)"
+              ? 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--destructive)) 50%, hsl(var(--primary)) 100%)'
               : isPressed
-              ? "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%)"
-              : "linear-gradient(135deg, hsl(var(--primary) / 0.9) 0%, hsl(var(--primary)) 50%, hsl(var(--accent) / 0.8) 100%)",
+              ? 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary) / 0.8) 100%)'
+              : 'linear-gradient(135deg, hsl(250 30% 12%) 0%, hsl(250 30% 8%) 100%)',
+            border: '2px solid',
+            borderColor: isActivated 
+              ? 'hsl(var(--primary))' 
+              : 'hsl(var(--primary) / 0.4)',
+            boxShadow: isActivated
+              ? '0 0 60px hsl(var(--primary) / 0.6), 0 0 120px hsl(var(--primary) / 0.3), inset 0 0 60px hsl(var(--primary) / 0.2)'
+              : isPressed
+              ? '0 0 40px hsl(var(--primary) / 0.4), inset 0 0 40px hsl(var(--primary) / 0.1)'
+              : '0 0 30px hsl(var(--primary) / 0.2), inset 0 0 30px hsl(250 30% 6% / 0.5)',
           }}
           disabled={isActivated}
         >
-          {/* Inner shine effect */}
+          {/* Inner gradient overlay */}
           <motion.div
-            className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-white/20"
-            animate={{ opacity: [0.3, 0.5, 0.3] }}
-            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: 'linear-gradient(180deg, hsl(var(--foreground) / 0.1) 0%, transparent 50%, hsl(var(--background) / 0.3) 100%)',
+            }}
           />
           
-          {/* Rotating gradient overlay */}
+          {/* Rotating glow effect */}
           <motion.div
-            className="absolute inset-0 opacity-30"
+            className="absolute inset-0 rounded-full opacity-50"
             style={{
-              background: "conic-gradient(from 0deg, transparent, hsl(var(--foreground) / 0.1), transparent)",
+              background: 'conic-gradient(from 0deg, transparent, hsl(var(--primary) / 0.3), transparent, hsl(var(--secondary) / 0.3), transparent)',
             }}
             animate={{ rotate: 360 }}
-            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
           />
 
-          {/* Icon with animation */}
+          {/* Icon with glow */}
           <motion.div
-            animate={isActivated ? { scale: [1, 1.1, 1] } : {}}
-            transition={{ duration: 0.5, repeat: Infinity }}
+            className="relative z-10"
+            animate={isActivated ? { scale: [1, 1.15, 1] } : {}}
+            transition={{ duration: 0.6, repeat: Infinity }}
           >
             {isActivated ? (
-              <Zap className="w-14 h-14 text-primary-foreground drop-shadow-lg" />
+              <Zap 
+                className="w-16 h-16 text-primary-foreground" 
+                style={{ 
+                  filter: 'drop-shadow(0 0 20px hsl(var(--primary)))',
+                }} 
+              />
             ) : (
-              <Shield className="w-14 h-14 text-primary-foreground drop-shadow-lg" />
+              <Shield 
+                className="w-16 h-16"
+                style={{
+                  color: isPressed ? 'hsl(var(--primary-foreground))' : 'hsl(var(--primary))',
+                  filter: 'drop-shadow(0 0 15px hsl(var(--primary) / 0.5))',
+                }}
+              />
             )}
           </motion.div>
           
-          <span className="text-2xl font-display font-bold text-primary-foreground drop-shadow-lg relative z-10">
+          <motion.span 
+            className="text-2xl font-display font-bold relative z-10"
+            style={{
+              color: isActivated || isPressed ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
+              textShadow: '0 0 20px hsl(var(--primary) / 0.5)',
+            }}
+          >
             {isActivated ? "ACTIVE" : "SOS"}
-          </span>
+          </motion.span>
 
-          {/* Shimmer effect */}
+          {/* Shimmer sweep */}
           <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-            initial={{ x: "-100%" }}
-            animate={{ x: "100%" }}
-            transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: 'linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.1), transparent)',
+            }}
+            initial={{ x: '-100%' }}
+            animate={{ x: '100%' }}
+            transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1.5 }}
           />
         </motion.button>
       </div>
 
       <motion.p 
         className="text-muted-foreground text-center text-sm max-w-xs"
-        animate={{ opacity: [0.7, 1, 0.7] }}
-        transition={{ duration: 2, repeat: Infinity }}
+        animate={{ opacity: [0.6, 1, 0.6] }}
+        transition={{ duration: 3, repeat: Infinity }}
       >
         {isActivated
           ? "Emergency services have been alerted"
@@ -229,7 +286,13 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={cancelEmergency}
-            className="px-8 py-4 rounded-2xl glass-card-hover text-foreground font-semibold transition-all"
+            className="px-8 py-4 rounded-2xl font-semibold transition-all relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, hsl(250 30% 12%) 0%, hsl(250 30% 8%) 100%)',
+              border: '1px solid hsl(var(--secondary) / 0.3)',
+              color: 'hsl(var(--foreground))',
+              boxShadow: '0 0 20px hsl(var(--secondary) / 0.2)',
+            }}
           >
             Cancel Emergency
           </motion.button>

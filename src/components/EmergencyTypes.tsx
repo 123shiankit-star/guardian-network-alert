@@ -6,44 +6,38 @@ const emergencyTypes = [
   {
     icon: Phone,
     label: "Police",
-    color: "primary",
-    gradient: "from-primary/20 to-primary/5",
-    iconBg: "from-primary to-primary/70",
+    gradient: "from-violet-500 to-purple-600",
+    glowColor: "hsl(280 80% 65%)",
   },
   {
     icon: Flame,
     label: "Fire",
-    color: "warning",
-    gradient: "from-orange-500/20 to-orange-500/5",
-    iconBg: "from-orange-500 to-orange-600",
+    gradient: "from-orange-500 to-red-600",
+    glowColor: "hsl(30 90% 55%)",
   },
   {
     icon: Heart,
     label: "Medical",
-    color: "primary",
-    gradient: "from-red-500/20 to-red-500/5",
-    iconBg: "from-red-500 to-red-600",
+    gradient: "from-pink-500 to-rose-600",
+    glowColor: "hsl(340 80% 60%)",
   },
   {
     icon: Car,
     label: "Accident",
-    color: "warning",
-    gradient: "from-amber-500/20 to-amber-500/5",
-    iconBg: "from-amber-500 to-amber-600",
+    gradient: "from-amber-500 to-orange-600",
+    glowColor: "hsl(38 92% 55%)",
   },
   {
     icon: Shield,
     label: "Safety",
-    color: "secondary",
-    gradient: "from-secondary/20 to-secondary/5",
-    iconBg: "from-secondary to-secondary/70",
+    gradient: "from-cyan-500 to-teal-600",
+    glowColor: "hsl(175 80% 50%)",
   },
   {
     icon: Users,
     label: "Family",
-    color: "secondary",
-    gradient: "from-teal-500/20 to-teal-500/5",
-    iconBg: "from-teal-500 to-teal-600",
+    gradient: "from-blue-500 to-indigo-600",
+    glowColor: "hsl(220 90% 60%)",
   },
 ];
 
@@ -85,7 +79,12 @@ export const EmergencyTypes = () => {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
       >
-        <span className="w-1 h-6 bg-gradient-to-b from-primary to-accent rounded-full" />
+        <span 
+          className="w-1 h-6 rounded-full"
+          style={{
+            background: 'linear-gradient(180deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%)',
+          }}
+        />
         Quick Emergency
       </motion.h2>
       <motion.div 
@@ -101,34 +100,43 @@ export const EmergencyTypes = () => {
             onClick={() => handleEmergencyType(type.label)}
             whileHover={{ scale: 1.05, y: -5 }}
             whileTap={{ scale: 0.95 }}
-            className={`relative flex flex-col items-center gap-3 p-4 rounded-2xl glass-card overflow-hidden group transition-all duration-300`}
+            className="relative flex flex-col items-center gap-3 p-4 rounded-2xl overflow-hidden group"
+            style={{
+              background: 'linear-gradient(135deg, hsl(250 30% 12%) 0%, hsl(250 30% 8%) 100%)',
+              border: '1px solid hsl(var(--border))',
+            }}
           >
-            {/* Hover gradient background */}
+            {/* Hover glow effect */}
             <motion.div
-              className={`absolute inset-0 bg-gradient-to-br ${type.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+              style={{
+                background: `radial-gradient(circle at center, ${type.glowColor} / 0.15, transparent 70%)`,
+              }}
             />
             
-            {/* Animated border glow */}
+            {/* Border glow on hover */}
             <motion.div
               className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               style={{
-                background: `linear-gradient(135deg, hsl(var(--${type.color}) / 0.3) 0%, transparent 50%, hsl(var(--${type.color}) / 0.3) 100%)`,
-                padding: "1px",
+                boxShadow: `inset 0 0 0 1px ${type.glowColor} / 0.5, 0 0 20px ${type.glowColor} / 0.2`,
               }}
             />
             
             <motion.div
-              className={`relative w-12 h-12 rounded-xl bg-gradient-to-br ${type.iconBg} flex items-center justify-center shadow-lg`}
-              whileHover={{ rotate: [0, -10, 10, 0] }}
+              className={`relative w-12 h-12 rounded-xl bg-gradient-to-br ${type.gradient} flex items-center justify-center`}
+              style={{
+                boxShadow: `0 0 20px ${type.glowColor} / 0.3`,
+              }}
+              whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
               transition={{ duration: 0.5 }}
             >
-              <type.icon className="w-6 h-6 text-white drop-shadow-md" />
+              <type.icon className="w-6 h-6 text-white" />
               
-              {/* Icon glow */}
-              <motion.div
-                className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              {/* Icon inner glow */}
+              <div 
+                className="absolute inset-0 rounded-xl"
                 style={{
-                  boxShadow: `0 0 20px hsl(var(--${type.color}) / 0.5)`,
+                  background: 'linear-gradient(180deg, hsl(0 0% 100% / 0.2) 0%, transparent 50%)',
                 }}
               />
             </motion.div>
@@ -137,16 +145,15 @@ export const EmergencyTypes = () => {
               {type.label}
             </span>
 
-            {/* Ripple effect on hover */}
+            {/* Shimmer effect */}
             <motion.div
-              className="absolute inset-0 rounded-2xl pointer-events-none"
-              initial={false}
-              whileHover={{
-                boxShadow: [
-                  `inset 0 0 0 0 hsl(var(--${type.color}) / 0)`,
-                  `inset 0 0 0 2px hsl(var(--${type.color}) / 0.3)`,
-                ],
+              className="absolute inset-0 opacity-0 group-hover:opacity-100"
+              style={{
+                background: 'linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.05), transparent)',
               }}
+              initial={{ x: '-100%' }}
+              whileHover={{ x: '100%' }}
+              transition={{ duration: 0.6 }}
             />
           </motion.button>
         ))}

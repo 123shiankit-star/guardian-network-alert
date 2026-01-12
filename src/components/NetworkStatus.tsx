@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Wifi, WifiOff, Signal, SignalLow, SignalMedium, SignalHigh } from "lucide-react";
+import { Wifi, WifiOff, SignalLow, SignalHigh, X, AlertTriangle, Shield } from "lucide-react";
 
 type NetworkState = "online" | "weak" | "offline";
 
@@ -53,27 +53,30 @@ export const NetworkStatus = () => {
     switch (networkState) {
       case "online":
         return {
-          icon: <SignalHigh className="w-5 h-5" />,
+          icon: <SignalHigh className="w-4 h-4" />,
           label: "Connected",
-          bgClass: "bg-secondary/20",
+          bgClass: "from-secondary/30 to-secondary/10",
           textClass: "text-secondary",
           dotClass: "bg-secondary",
+          glowColor: "var(--secondary)",
         };
       case "weak":
         return {
-          icon: <SignalLow className="w-5 h-5" />,
+          icon: <SignalLow className="w-4 h-4" />,
           label: "Weak Signal",
-          bgClass: "bg-warning/20",
-          textClass: "text-warning",
-          dotClass: "bg-warning",
+          bgClass: "from-orange-500/30 to-orange-500/10",
+          textClass: "text-orange-400",
+          dotClass: "bg-orange-400",
+          glowColor: "38 92% 55%",
         };
       case "offline":
         return {
-          icon: <WifiOff className="w-5 h-5" />,
+          icon: <WifiOff className="w-4 h-4" />,
           label: "Offline Mode",
-          bgClass: "bg-primary/20",
+          bgClass: "from-primary/30 to-primary/10",
           textClass: "text-primary",
           dotClass: "bg-primary",
+          glowColor: "var(--primary)",
         };
     }
   };
@@ -83,59 +86,128 @@ export const NetworkStatus = () => {
   return (
     <>
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${config.bgClass} ${config.textClass}`}
+        initial={{ opacity: 0, y: -10, scale: 0.9 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: "spring", stiffness: 150 }}
+        whileHover={{ scale: 1.05 }}
+        className={`relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${config.bgClass} ${config.textClass} overflow-hidden cursor-default`}
       >
-        <span className={`w-2 h-2 rounded-full ${config.dotClass} animate-pulse`} />
-        {config.icon}
-        <span className="text-sm font-medium">{config.label}</span>
+        {/* Animated background shimmer */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+          animate={{ x: ["-100%", "100%"] }}
+          transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
+        />
+        
+        {/* Pulsing dot */}
+        <motion.span 
+          className={`relative w-2 h-2 rounded-full ${config.dotClass}`}
+          animate={{ scale: [1, 1.2, 1] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          <motion.span
+            className={`absolute inset-0 rounded-full ${config.dotClass}`}
+            animate={{ scale: [1, 2], opacity: [0.6, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          />
+        </motion.span>
+        
+        <motion.span
+          animate={{ rotate: networkState === "offline" ? [0, 10, -10, 0] : 0 }}
+          transition={{ duration: 0.5, repeat: networkState === "offline" ? Infinity : 0, repeatDelay: 2 }}
+        >
+          {config.icon}
+        </motion.span>
+        
+        <span className="text-sm font-medium relative z-10">{config.label}</span>
       </motion.div>
 
       <AnimatePresence>
         {showAlert && networkState !== "online" && (
           <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            initial={{ opacity: 0, y: -30, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            exit={{ opacity: 0, y: -30, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 150, damping: 20 }}
             className="fixed top-4 left-4 right-4 z-50"
           >
-            <div
-              className={`p-4 rounded-xl border ${
+            <motion.div
+              className={`relative p-5 rounded-2xl glass-card overflow-hidden border-2 ${
                 networkState === "offline"
-                  ? "bg-primary/10 border-primary/30"
-                  : "bg-warning/10 border-warning/30"
+                  ? "border-primary/40"
+                  : "border-orange-500/40"
               }`}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {networkState === "offline" ? (
-                    <WifiOff className="w-6 h-6 text-primary" />
-                  ) : (
-                    <SignalLow className="w-6 h-6 text-warning" />
-                  )}
+              {/* Animated gradient background */}
+              <motion.div
+                className={`absolute inset-0 ${
+                  networkState === "offline"
+                    ? "bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10"
+                    : "bg-gradient-to-r from-orange-500/10 via-orange-500/5 to-orange-500/10"
+                }`}
+                animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+                transition={{ duration: 5, repeat: Infinity }}
+              />
+              
+              {/* Pulsing border glow */}
+              <motion.div
+                className="absolute inset-0 rounded-2xl"
+                animate={{
+                  boxShadow: networkState === "offline"
+                    ? [
+                        "inset 0 0 20px hsl(var(--primary) / 0.1)",
+                        "inset 0 0 40px hsl(var(--primary) / 0.2)",
+                        "inset 0 0 20px hsl(var(--primary) / 0.1)",
+                      ]
+                    : [
+                        "inset 0 0 20px hsl(38 92% 55% / 0.1)",
+                        "inset 0 0 40px hsl(38 92% 55% / 0.2)",
+                        "inset 0 0 20px hsl(38 92% 55% / 0.1)",
+                      ],
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+              
+              <div className="flex items-center justify-between relative z-10">
+                <div className="flex items-center gap-4">
+                  <motion.div
+                    className={`p-3 rounded-xl ${
+                      networkState === "offline"
+                        ? "bg-gradient-to-br from-primary to-primary/70"
+                        : "bg-gradient-to-br from-orange-500 to-orange-600"
+                    }`}
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    {networkState === "offline" ? (
+                      <Shield className="w-6 h-6 text-white" />
+                    ) : (
+                      <AlertTriangle className="w-6 h-6 text-white" />
+                    )}
+                  </motion.div>
+                  
                   <div>
-                    <p className="font-semibold text-foreground">
-                      {networkState === "offline" ? "No Network Connection" : "Weak Network Detected"}
+                    <p className="font-semibold text-foreground text-lg">
+                      {networkState === "offline" ? "Offline Protection Active" : "Weak Network Detected"}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {networkState === "offline"
-                        ? "Emergency features are still active"
-                        : "Some features may be limited"}
+                        ? "All emergency features remain fully operational"
+                        : "Some features may be limited, offline mode available"}
                     </p>
                   </div>
                 </div>
-                <button
+                
+                <motion.button
                   onClick={() => setShowAlert(false)}
-                  className="p-2 hover:bg-muted rounded-lg transition-colors"
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="p-2.5 rounded-xl hover:bg-muted/50 transition-colors"
                 >
-                  <span className="sr-only">Dismiss</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </motion.button>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

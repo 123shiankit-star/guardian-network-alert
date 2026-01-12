@@ -1,64 +1,30 @@
 import { motion } from "framer-motion";
-import { Radio, MapPin, Volume2, Flashlight, LucideIcon, Check } from "lucide-react";
+import { Radio, MapPin, Volume2, Flashlight } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-interface Feature {
-  icon: LucideIcon;
-  label: string;
-  description: string;
-  gradient: string;
-}
-
-const features: Feature[] = [
+const features = [
   {
     icon: Radio,
     label: "Bluetooth Alert",
-    description: "Send via Bluetooth",
-    gradient: "from-blue-500 to-cyan-400",
+    description: "Send alerts via Bluetooth",
   },
   {
     icon: MapPin,
     label: "GPS Tracking",
-    description: "Share location",
-    gradient: "from-secondary to-emerald-400",
+    description: "Share last known location",
   },
   {
     icon: Volume2,
     label: "Siren Mode",
-    description: "Loud alarm",
-    gradient: "from-primary to-orange-400",
+    description: "Loud alarm sound",
   },
   {
     icon: Flashlight,
     label: "SOS Flash",
-    description: "Flash signal",
-    gradient: "from-warning to-yellow-400",
+    description: "Flash SOS signal",
   },
 ];
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, scale: 0.8 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      type: "spring" as const,
-      damping: 15,
-      stiffness: 200,
-    },
-  },
-};
 
 export const OfflineFeatures = () => {
   const [activeFeatures, setActiveFeatures] = useState<string[]>([]);
@@ -77,110 +43,48 @@ export const OfflineFeatures = () => {
 
   return (
     <div className="w-full">
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true }}
-        className="mb-5"
-      >
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-1 h-6 bg-gradient-to-b from-accent to-pink-500 rounded-full" />
-          <h2 className="text-xl font-display font-bold text-foreground">
-            Offline Features
-          </h2>
-        </div>
-        <p className="text-sm text-muted-foreground ml-4">
-          Works even without network connection
-        </p>
-      </motion.div>
-
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        className="grid grid-cols-2 gap-3"
-      >
-        {features.map((feature) => {
+      <h2 className="text-lg font-display font-semibold text-foreground mb-2">
+        Offline Features
+      </h2>
+      <p className="text-sm text-muted-foreground mb-4">
+        These features work even without network
+      </p>
+      
+      <div className="grid grid-cols-2 gap-3">
+        {features.map((feature, index) => {
           const isActive = activeFeatures.includes(feature.label);
           return (
             <motion.button
               key={feature.label}
-              variants={itemVariants}
-              whileHover={{ scale: 1.03, y: -3 }}
-              whileTap={{ scale: 0.97 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.1 }}
               onClick={() => toggleFeature(feature.label)}
-              className={`relative flex flex-col items-start gap-3 p-4 rounded-2xl border transition-all duration-500 overflow-hidden ${
+              className={`flex flex-col items-start gap-2 p-4 rounded-xl border transition-all duration-300 ${
                 isActive
-                  ? "glass-strong border-secondary/50 shadow-[0_0_30px_hsl(var(--secondary)/0.2)]"
-                  : "glass border-border/50 hover:border-accent/30"
+                  ? "bg-secondary/20 border-secondary/50"
+                  : "bg-card border-border hover:border-secondary/30"
               }`}
             >
-              {/* Background glow when active */}
-              {isActive && (
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-br from-secondary/10 to-transparent"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                />
-              )}
-
-              {/* Icon container */}
-              <div className="relative flex items-center justify-between w-full">
-                <motion.div
-                  className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                    isActive
-                      ? `bg-gradient-to-br ${feature.gradient}`
-                      : "bg-muted"
-                  }`}
-                  animate={isActive ? { rotate: [0, -5, 5, 0] } : {}}
-                  transition={{ duration: 0.5 }}
-                >
-                  <feature.icon
-                    className={`w-6 h-6 transition-colors ${
-                      isActive ? "text-foreground" : "text-muted-foreground"
-                    }`}
-                  />
-                </motion.div>
-
-                {/* Active indicator */}
-                {isActive && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center"
-                  >
-                    <Check className="w-4 h-4 text-secondary-foreground" />
-                  </motion.div>
-                )}
+              <div
+                className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
+                  isActive
+                    ? "bg-secondary text-secondary-foreground"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
+                <feature.icon className="w-5 h-5" />
               </div>
-
-              {/* Text */}
-              <div className="relative text-left">
-                <p
-                  className={`font-display font-semibold text-sm transition-colors ${
-                    isActive ? "text-secondary" : "text-foreground"
-                  }`}
-                >
+              <div className="text-left">
+                <p className={`font-medium text-sm ${isActive ? "text-secondary" : "text-foreground"}`}>
                   {feature.label}
                 </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {feature.description}
-                </p>
+                <p className="text-xs text-muted-foreground">{feature.description}</p>
               </div>
-
-              {/* Active pulse ring */}
-              {isActive && (
-                <motion.div
-                  className="absolute -inset-1 rounded-2xl border-2 border-secondary/50"
-                  animate={{ scale: [1, 1.02, 1], opacity: [0.5, 0.3, 0.5] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
-              )}
             </motion.button>
           );
         })}
-      </motion.div>
+      </div>
     </div>
   );
 };

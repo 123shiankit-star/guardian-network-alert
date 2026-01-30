@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { defaultContacts } from "./EmergencyContacts";
+import { once } from "events";
 
 interface SOSButtonProps {
   onActivate?: () => void;
@@ -154,25 +155,7 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
           transition={{ duration: 2, repeat: Infinity }}
         />
 
-        {/* Hexagonal orbit rings */}
-        <motion.div
-          className="absolute inset-[-30px]"
-          style={{
-            border: '1px solid hsl(var(--secondary) / 0.3)',
-            clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-          }}
-          animate={{ rotate: 360 }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        />
-        <motion.div
-          className="absolute inset-[-50px]"
-          style={{
-            border: '1px solid hsl(var(--primary) / 0.2)',
-            clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-          }}
-          animate={{ rotate: -360 }}
-          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-        />
+
 
         {/* Pulsing rings on press */}
         <AnimatePresence>
@@ -193,7 +176,6 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
                   exit={{ opacity: 0 }}
                   transition={{
                     duration: 1.5,
-                    repeat: Infinity,
                     delay: i * 0.3,
                     ease: "easeOut",
                   }}
@@ -203,29 +185,24 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
           )}
         </AnimatePresence>
 
-        {/* Activated state rings */}
+        {/* Activated state ring - single smooth pulse */}
         <AnimatePresence>
           {isActivated && (
-            <>
-              {[0, 1, 2, 3, 4].map((i) => (
-                <motion.div
-                  key={`active-${i}`}
-                  className="absolute inset-0 rounded-full"
-                  style={{
-                    border: '2px solid',
-                    borderColor: i % 2 === 0 ? 'hsl(var(--primary))' : 'hsl(var(--secondary))',
-                  }}
-                  initial={{ scale: 1, opacity: 1 }}
-                  animate={{ scale: 3 + i * 0.2, opacity: 0 }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    delay: i * 0.4,
-                    ease: "easeOut",
-                  }}
-                />
-              ))}
-            </>
+            <motion.div
+              key="active-ring"
+              className="absolute inset-0 rounded-full"
+              style={{
+                border: '2px solid',
+                borderColor: 'hsl(var(--primary))',
+              }}
+              initial={{ scale: 1, opacity: 0.8 }}
+              animate={{ scale: 2.5, opacity: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{
+                duration: 1.8,
+                ease: "easeOut",
+              }}
+            />
           )}
         </AnimatePresence>
 
@@ -308,8 +285,8 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
           {/* Icon with glow */}
           <motion.div
             className="relative z-10"
-            animate={isActivated ? { scale: [1, 1.15, 1] } : {}}
-            transition={{ duration: 0.6, repeat: Infinity }}
+            animate={isActivated ? { scale: [1, 1.08, 1], opacity: [1, 0.9, 1] } : {}}
+            transition={{ duration: 1.2 }}
           >
             {isActivated ? (
               <Zap 

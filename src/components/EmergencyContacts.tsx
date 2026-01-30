@@ -10,7 +10,7 @@ export interface Contact {
 }
 
 export const defaultContacts: Contact[] = [
-  { id: "1", name: "Emergency Services", phone: "112", isPrimary: true },
+  { id: "1", name: "Police", phone: "112", isPrimary: true },
   { id: "2", name: "Mom", phone: "+91 8305626857", isPrimary: false },
   { id: "3", name: "Dad", phone: "+91 7509589118", isPrimary: false },
 ];
@@ -124,30 +124,36 @@ export const EmergencyContacts = () => {
       {showAdd && (
         <form
           onSubmit={(e) => { e.preventDefault(); addContact(); }}
-          className="mb-4 p-4 rounded-2xl bg-[linear-gradient(135deg,hsl(250 30% 12%)_0%,hsl(250 30% 8%)_100%)] border hsl(var(--border))"
+          className="mb-4 p-4 rounded-2xl"
+          style={{
+            background: 'linear-gradient(135deg,hsl(250 30% 12%) 0%,hsl(250 30% 8%) 100%)',
+            border: '1px solid hsl(var(--border))',
+          }}
         >
-          <div className="flex gap-2 items-center mb-2">
+          <div className="flex flex-col sm:flex-row gap-2 items-center mb-2">
             <input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="Name"
-              className="flex-1 px-3 py-2 rounded-lg bg-transparent border border-gray-700"
+              className="flex-1 w-full px-3 py-2 rounded-lg bg-transparent border border-gray-700"
             />
             <input
               value={newPhone}
               onChange={(e) => setNewPhone(e.target.value)}
               placeholder="Phone"
-              className="w-48 px-3 py-2 rounded-lg bg-transparent border border-gray-700"
+              className="w-full sm:w-48 px-3 py-2 rounded-lg bg-transparent border border-gray-700"
             />
           </div>
-          <div className="flex items-center gap-4 mb-2">
+          <div className="flex flex-col sm:flex-row items-center gap-2 mb-2">
             <label className="flex items-center gap-2">
               <input type="checkbox" checked={newPrimary} onChange={(e) => setNewPrimary(e.target.checked)} />
               <span className="text-sm">Set as primary</span>
             </label>
             <div className="flex-1" />
-            <button type="button" onClick={() => { setShowAdd(false); }} className="px-4 py-2 rounded-lg">Cancel</button>
-            <button type="submit" className="px-4 py-2 rounded-lg bg-primary text-primary-foreground">Add</button>
+            <div className="flex w-full sm:w-auto gap-2">
+              <button type="button" onClick={() => { setShowAdd(false); }} className="w-full sm:w-auto px-4 py-2 rounded-lg">Cancel</button>
+              <button type="submit" className="w-full sm:w-auto px-4 py-2 rounded-lg bg-primary text-primary-foreground">Add</button>
+            </div>
           </div>
         </form>
       )}

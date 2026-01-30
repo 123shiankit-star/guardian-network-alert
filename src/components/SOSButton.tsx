@@ -56,13 +56,17 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
 
   const formatTel = (phone: string) => phone.replace(/[^+\d]/g, "");
 
-  const getPosition = (timeout = 4000) =>
+  const getPosition = (timeout = 8000) =>
     new Promise<GeolocationPosition | null>((resolve) => {
-      if (!navigator.geolocation) return resolve(null);
+      if (!navigator.geolocation) {
+        toast.error('Geolocation not supported on this device');
+        return resolve(null);
+      }
       let resolved = false;
       const timer = window.setTimeout(() => {
         if (!resolved) {
           resolved = true;
+          toast.warning('Location request timed out — sending without coordinates');
           resolve(null);
         }
       }, timeout);
@@ -74,14 +78,19 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
             resolve(pos);
           }
         },
-        () => {
+        (err) => {
           if (!resolved) {
             resolved = true;
             clearTimeout(timer);
+            if (err.code === 1) {
+              toast.error('Location permission denied — sending without coordinates');
+            } else {
+              toast.warning('Unable to get location — sending without coordinates');
+            }
             resolve(null);
           }
         },
-        { enableHighAccuracy: true, maximumAge: 0 }
+        { enableHighAccuracy: true, maximumAge: 0, timeout: timeout - 1000 }
       );
     });
 
@@ -92,15 +101,15 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
       const raw = localStorage.getItem("guardian_contacts");
       if (raw) contacts = JSON.parse(raw) as typeof contacts;
     } catch {}
-    const pos = await getPosition(4000);
+    const pos = await getPosition(8000);
     let loc = "";
     if (pos) {
       const lat = pos.coords.latitude;
       const lon = pos.coords.longitude;
-      loc = ` Location: https://maps.google.com/?q=${lat},${lon}`;
+      loc = `\nLocation: https://maps.google.com/?q=${lat},${lon}`;
     }
 
-    const message = `I am not safe. Please help. My live location:${loc}`;
+    const message = `I am not safe. Please help immediately.${loc ? loc : '\n(Location could not be determined)'}\n\nSent from GuardMe Emergency App`;
 
     try {
       await navigator.clipboard?.writeText?.(message).catch(() => {});
@@ -115,26 +124,36 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
       }
     }
 
-    // For each contact, open SMS intent sequentially so the device can handle them.
-    contacts.forEach((c, i) => {
-      const tel = formatTel(c.phone);
-      if (!tel) return;
-      const smsUrl = `sms:${tel}?body=${encodeURIComponent(message)}`;
-      // stagger openings to avoid popup blocking
+    // Prefer opening a single SMS intent with all recipients — works better on mobile
+    const recipients = contacts.map((c) => formatTel(c.phone)).filter(Boolean);
+    if (recipients.length === 0) {
+      toast.error("No valid phone numbers found in contacts");
+      return;
+    }
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const recipientStr = recipients.join(',');
+    const smsUrl = isIOS
+      ? `sms:${recipientStr}&body=${encodeURIComponent(message)}`
+      : `sms:${recipientStr}?body=${encodeURIComponent(message)}`;
+
+    try {
+      // Use location.href to open the SMS app in the same context (more reliable on mobile)
+      window.location.href = smsUrl;
+    } catch {}
+
+    // Also attempt to call the primary contact (if any) after opening SMS
+    const primary = contacts.find((c) => c.isPrimary);
+    if (primary) {
       setTimeout(() => {
         try {
-          window.open(smsUrl, "_blank");
+          window.open(`tel:${formatTel(primary.phone)}`, '_self');
         } catch {}
-        // if primary, also attempt to open tel intent shortly after
-        if (c.isPrimary) {
-          try {
-            window.open(`tel:${tel}`, "_self");
-          } catch {}
-        }
-      }, i * 800);
-    });
+      }, 1000);
+    }
 
-    toast.success("Alert prepared — SMS prompts will open on your device", { duration: 6000 });
+    const locationStatus = pos ? 'with live location' : 'without location (permission may have been denied)';
+    toast.success(`Alert prepared ${locationStatus} — SMS app will open`, { duration: 6000 });
   };
 
   const cancelEmergency = () => {

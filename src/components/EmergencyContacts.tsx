@@ -10,7 +10,7 @@ export interface Contact {
 }
 
 export const defaultContacts: Contact[] = [
-  { id: "1", name: "Police", phone: "112", isPrimary: true },
+ /*  { id: "1", name: "Police", phone: "112", isPrimary: true }, */
   { id: "2", name: "Mom", phone: "+91 8305626857", isPrimary: false },
   { id: "3", name: "Dad", phone: "+91 7509589118", isPrimary: false },
 ];

@@ -86,7 +86,12 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
     });
 
   const sendAlerts = async () => {
-    const contacts = defaultContacts;
+    // read persisted contacts from localStorage if available
+    let contacts = defaultContacts;
+    try {
+      const raw = localStorage.getItem("guardian_contacts");
+      if (raw) contacts = JSON.parse(raw) as typeof contacts;
+    } catch {}
     const pos = await getPosition(4000);
     let loc = "";
     if (pos) {
@@ -95,7 +100,7 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
       loc = ` Location: https://maps.google.com/?q=${lat},${lon}`;
     }
 
-    const message = `I am not safe. Call police.${loc}`;
+    const message = `I am not safe. Please help. My live location:${loc}`;
 
     try {
       await navigator.clipboard?.writeText?.(message).catch(() => {});
@@ -110,25 +115,26 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
       }
     }
 
-    // For each contact, try to open SMS and call for primary
-    contacts.forEach((c) => {
+    // For each contact, open SMS intent sequentially so the device can handle them.
+    contacts.forEach((c, i) => {
       const tel = formatTel(c.phone);
       if (!tel) return;
-      // SMS
-      try {
-        const smsUrl = `sms:${tel}?body=${encodeURIComponent(message)}`;
-        window.open(smsUrl, "_blank");
-      } catch {}
-      // If primary, try to initiate call as well
-      if (c.isPrimary) {
+      const smsUrl = `sms:${tel}?body=${encodeURIComponent(message)}`;
+      // stagger openings to avoid popup blocking
+      setTimeout(() => {
         try {
-          const telUrl = `tel:${tel}`;
-          window.open(telUrl, "_self");
+          window.open(smsUrl, "_blank");
         } catch {}
-      }
+        // if primary, also attempt to open tel intent shortly after
+        if (c.isPrimary) {
+          try {
+            window.open(`tel:${tel}`, "_self");
+          } catch {}
+        }
+      }, i * 800);
     });
 
-    toast.success("Alert message prepared — SMS/Call prompts opened where supported", { duration: 6000 });
+    toast.success("Alert prepared — SMS prompts will open on your device", { duration: 6000 });
   };
 
   const cancelEmergency = () => {

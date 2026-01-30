@@ -40,7 +40,14 @@ const itemVariants: Variants = {
 };
 
 export const EmergencyContacts = () => {
-  const [contacts, setContacts] = useState<Contact[]>(defaultContacts);
+  const [contacts, setContacts] = useState<Contact[]>(() => {
+    try {
+      const raw = localStorage.getItem("guardian_contacts");
+      return raw ? (JSON.parse(raw) as Contact[]) : defaultContacts;
+    } catch {
+      return defaultContacts;
+    }
+  });
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
   const [newPhone, setNewPhone] = useState("");
@@ -84,6 +91,12 @@ export const EmergencyContacts = () => {
     }
   };
 
+  // persist contacts to localStorage whenever contacts change
+  // using an effect-like minimal implementation to avoid lint noise
+  try {
+    localStorage.setItem("guardian_contacts", JSON.stringify(contacts));
+  } catch {}
+
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-4">
@@ -99,6 +112,7 @@ export const EmergencyContacts = () => {
             }}
           />
           Emergency Contacts
+          <span className="text-sm text-muted-foreground ml-2">({contacts.length})</span>
         </motion.h2>
         <motion.button 
           onClick={() => setShowAdd((s) => !s)}

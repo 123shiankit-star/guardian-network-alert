@@ -1,6 +1,13 @@
 import { motion, Variants } from "framer-motion";
 import { Phone, Flame, Heart, Car, Shield, Users } from "lucide-react";
 import { toast } from "sonner";
+import { defaultContacts } from "./EmergencyContacts";
+
+const withAlpha = (color: string, alpha = 0.3) => {
+  const hslMatch = color.match(/^(hsl\([^)]*)\)\s*$/);
+  if (hslMatch) return `${hslMatch[1]} / ${alpha})`;
+  return color;
+};
 
 const emergencyTypes = [
   {
@@ -66,10 +73,79 @@ const itemVariants: Variants = {
 };
 
 export const EmergencyTypes = () => {
-  const handleEmergencyType = (type: string) => {
-    toast.info(`${type} emergency selected`, {
-      description: "Preparing to send alert...",
+  const formatTel = (phone: string) => phone.replace(/[^+\d]/g, "");
+
+  const getPosition = (timeout = 4000) =>
+    new Promise<GeolocationPosition | null>((resolve) => {
+      if (!navigator.geolocation) return resolve(null);
+      let resolved = false;
+      const timer = window.setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          resolve(null);
+        }
+      }, timeout);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          if (!resolved) {
+            resolved = true;
+            clearTimeout(timer);
+            resolve(pos);
+          }
+        },
+        () => {
+          if (!resolved) {
+            resolved = true;
+            clearTimeout(timer);
+            resolve(null);
+          }
+        },
+        { enableHighAccuracy: true, maximumAge: 0 }
+      );
     });
+
+  const handleEmergencyType = async (type: string) => {
+    toast.info(`${type} emergency selected`, { description: "Preparing to send alert..." });
+
+    const pos = await getPosition(3000);
+    let loc = "";
+    if (pos) loc = ` Location: https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
+
+    const message = `Emergency: ${type}. I am not safe. Please help.${loc}`;
+
+    try {
+      await navigator.clipboard?.writeText?.(message).catch(() => {});
+    } catch {}
+
+    if ((navigator as any).share) {
+      try {
+        await (navigator as any).share({ text: message });
+      } catch {}
+    }
+
+    // send SMS to all contacts and call primary or police number
+    defaultContacts.forEach((c) => {
+      const tel = formatTel(c.phone);
+      if (!tel) return;
+      try {
+        const smsUrl = `sms:${tel}?body=${encodeURIComponent(message)}`;
+        window.open(smsUrl, "_blank");
+      } catch {}
+    });
+
+    // If Police selected, try to call emergency number; otherwise call primary contact
+    const primary = defaultContacts.find((c) => c.isPrimary) || defaultContacts[0];
+    const police = defaultContacts.find((c) => /police|emergency services|112|911/i.test(c.name) || c.phone === "112" || c.phone === "911");
+
+    try {
+      if (type.toLowerCase() === "police" && police) {
+        window.open(`tel:${formatTel(police.phone)}`, "_self");
+      } else if (primary) {
+        window.open(`tel:${formatTel(primary.phone)}`, "_self");
+      }
+    } catch {}
+
+    toast.success("Alert prepared — SMS/call prompts opened where supported", { duration: 5000 });
   };
 
   return (
@@ -93,7 +169,7 @@ export const EmergencyTypes = () => {
         initial="hidden"
         animate="visible"
       >
-        {emergencyTypes.map((type) => (
+        {emergencyTypes.map((type) => { const Icon = type.icon; return (
           <motion.button
             key={type.label}
             variants={itemVariants}
@@ -110,7 +186,7 @@ export const EmergencyTypes = () => {
             <motion.div
               className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
               style={{
-                background: `radial-gradient(circle at center, ${type.glowColor} / 0.15, transparent 70%)`,
+                background: `radial-gradient(circle at center, ${withAlpha(type.glowColor, 0.15)}, transparent 70%)`,
               }}
             />
             
@@ -118,19 +194,19 @@ export const EmergencyTypes = () => {
             <motion.div
               className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               style={{
-                boxShadow: `inset 0 0 0 1px ${type.glowColor} / 0.5, 0 0 20px ${type.glowColor} / 0.2`,
+                boxShadow: `inset 0 0 0 1px ${withAlpha(type.glowColor, 0.5)}, 0 0 20px ${withAlpha(type.glowColor, 0.2)}`,
               }}
             />
             
             <motion.div
               className={`relative w-12 h-12 rounded-xl bg-gradient-to-br ${type.gradient} flex items-center justify-center`}
               style={{
-                boxShadow: `0 0 20px ${type.glowColor} / 0.3`,
+                boxShadow: `0 0 20px ${withAlpha(type.glowColor, 0.3)}`,
               }}
               whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
               transition={{ duration: 0.5 }}
             >
-              <type.icon className="w-6 h-6 text-white" />
+              <Icon className="w-6 h-6 text-white" />
               
               {/* Icon inner glow */}
               <div 
@@ -156,7 +232,7 @@ export const EmergencyTypes = () => {
               transition={{ duration: 0.6 }}
             />
           </motion.button>
-        ))}
+        )})}
       </motion.div>
     </div>
   );

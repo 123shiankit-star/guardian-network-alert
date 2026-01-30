@@ -2,17 +2,17 @@ import { motion, Variants } from "framer-motion";
 import { User, Phone, Plus, Star, Sparkles } from "lucide-react";
 import { useState } from "react";
 
-interface Contact {
+export interface Contact {
   id: string;
   name: string;
   phone: string;
   isPrimary: boolean;
 }
 
-const defaultContacts: Contact[] = [
-  { id: "1", name: "Emergency Services", phone: "911", isPrimary: true },
-  { id: "2", name: "Mom", phone: "+1 (555) 123-4567", isPrimary: false },
-  { id: "3", name: "Dad", phone: "+1 (555) 987-6543", isPrimary: false },
+export const defaultContacts: Contact[] = [
+  { id: "1", name: "Emergency Services", phone: "112", isPrimary: true },
+  { id: "2", name: "Mom", phone: "+91 8305626857", isPrimary: false },
+  { id: "3", name: "Dad", phone: "+91 7509589118", isPrimary: false },
 ];
 
 const containerVariants: Variants = {
@@ -40,7 +40,49 @@ const itemVariants: Variants = {
 };
 
 export const EmergencyContacts = () => {
-  const [contacts] = useState<Contact[]>(defaultContacts);
+  const [contacts, setContacts] = useState<Contact[]>(defaultContacts);
+  const [showAdd, setShowAdd] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newPhone, setNewPhone] = useState("");
+  const [newPrimary, setNewPrimary] = useState(false);
+
+  const formatTel = (phone: string) => phone.replace(/[^+\d]/g, "");
+
+  const addContact = () => {
+    const name = newName.trim();
+    const phone = newPhone.trim();
+    if (!name || !phone) {
+      // simple validation
+      // eslint-disable-next-line no-console
+      return;
+    }
+
+    const id = String(Date.now());
+    const contact: Contact = { id, name, phone, isPrimary: newPrimary };
+
+    setContacts((prev) => {
+      // if new contact is primary, clear previous primaries
+      const updated = newPrimary ? prev.map((c) => ({ ...c, isPrimary: false })) : prev;
+      return [contact, ...updated];
+    });
+
+    // reset form
+    setNewName("");
+    setNewPhone("");
+    setNewPrimary(false);
+    setShowAdd(false);
+    // notify
+    try {
+      // defer toast import usage to runtime
+      // import toast from sonner dynamically would be heavy; use window alert as lightweight fallback
+      // but project already uses sonner elsewhere; instead use a DOM-friendly call
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { toast } = require("sonner");
+      toast.success("Contact added");
+    } catch {
+      // noop
+    }
+  };
 
   return (
     <div className="w-full">
@@ -59,6 +101,8 @@ export const EmergencyContacts = () => {
           Emergency Contacts
         </motion.h2>
         <motion.button 
+          onClick={() => setShowAdd((s) => !s)}
+          aria-label="Add emergency contact"
           className="p-2.5 rounded-xl group relative overflow-hidden"
           style={{
             background: 'linear-gradient(135deg, hsl(250 30% 12%) 0%, hsl(250 30% 8%) 100%)',
@@ -77,22 +121,58 @@ export const EmergencyContacts = () => {
         </motion.button>
       </div>
       
+      {showAdd && (
+        <form
+          onSubmit={(e) => { e.preventDefault(); addContact(); }}
+          className="mb-4 p-4 rounded-2xl bg-[linear-gradient(135deg,hsl(250 30% 12%)_0%,hsl(250 30% 8%)_100%)] border hsl(var(--border))"
+        >
+          <div className="flex gap-2 items-center mb-2">
+            <input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Name"
+              className="flex-1 px-3 py-2 rounded-lg bg-transparent border border-gray-700"
+            />
+            <input
+              value={newPhone}
+              onChange={(e) => setNewPhone(e.target.value)}
+              placeholder="Phone"
+              className="w-48 px-3 py-2 rounded-lg bg-transparent border border-gray-700"
+            />
+          </div>
+          <div className="flex items-center gap-4 mb-2">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={newPrimary} onChange={(e) => setNewPrimary(e.target.checked)} />
+              <span className="text-sm">Set as primary</span>
+            </label>
+            <div className="flex-1" />
+            <button type="button" onClick={() => { setShowAdd(false); }} className="px-4 py-2 rounded-lg">Cancel</button>
+            <button type="submit" className="px-4 py-2 rounded-lg bg-primary text-primary-foreground">Add</button>
+          </div>
+        </form>
+      )}
+
       <motion.div 
         className="space-y-3"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {contacts.map((contact, index) => (
-          <motion.div
+        {contacts.map((contact, index) => {
+          const tel = formatTel(contact.phone);
+
+          return (
+          <motion.a
             key={contact.id}
+            href={`tel:${tel}`}
             variants={itemVariants}
             whileHover={{ scale: 1.02, x: 5 }}
-            className="relative flex items-center gap-4 p-4 rounded-2xl group overflow-hidden"
+            className="relative flex items-center gap-4 p-4 rounded-2xl group overflow-hidden cursor-pointer"
             style={{
               background: 'linear-gradient(135deg, hsl(250 30% 12%) 0%, hsl(250 30% 8%) 100%)',
               border: '1px solid hsl(var(--border))',
             }}
+            aria-label={`Call ${contact.name} at ${contact.phone}`}
           >
             {/* Hover gradient */}
             <motion.div
@@ -164,14 +244,13 @@ export const EmergencyContacts = () => {
               <p className="text-sm text-muted-foreground">{contact.phone}</p>
             </div>
             
-            <motion.button 
+            <motion.div 
               className="relative p-3.5 rounded-2xl overflow-hidden opacity-0 group-hover:opacity-100 transition-all duration-300"
               style={{
                 background: 'linear-gradient(135deg, hsl(var(--secondary) / 0.2) 0%, hsl(var(--secondary) / 0.1) 100%)',
                 border: '1px solid hsl(var(--secondary) / 0.3)',
               }}
               whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
             >
               <Phone className="w-5 h-5 text-secondary relative z-10" />
               <motion.div
@@ -181,9 +260,9 @@ export const EmergencyContacts = () => {
                 whileHover={{ scale: 2, opacity: 0.5 }}
                 transition={{ duration: 0.3 }}
               />
-            </motion.button>
-          </motion.div>
-        ))}
+            </motion.div>
+          </motion.a>
+        )})}
       </motion.div>
     </div>
   );

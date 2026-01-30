@@ -1,6 +1,6 @@
 import { motion, Variants } from "framer-motion";
 import { Radio, MapPin, Volume2, Flashlight, Wifi } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 
 const features = [
@@ -60,18 +60,182 @@ const itemVariants: Variants = {
 
 export const OfflineFeatures = () => {
   const [activeFeatures, setActiveFeatures] = useState<string[]>([]);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const oscillatorRef = useRef<OscillatorNode | null>(null);
+  const flashIntervalRef = useRef<number | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
 
   const toggleFeature = (label: string) => {
     if (activeFeatures.includes(label)) {
       setActiveFeatures((prev) => prev.filter((f) => f !== label));
       toast.info(`${label} deactivated`);
+      // stop side-effects
+      switch (label) {
+        case "Bluetooth Alert":
+          // nothing persistent to stop for Bluetooth
+          break;
+        case "GPS Tracking":
+          // no persistent watcher used here
+          break;
+        case "Siren Mode":
+          stopSiren();
+          break;
+        case "SOS Flash":
+          stopFlash();
+          break;
+        default:
+          break;
+      }
     } else {
       setActiveFeatures((prev) => [...prev, label]);
       toast.success(`${label} activated`, {
         description: "Feature is now active",
       });
+
+      // start side-effects
+      switch (label) {
+        case "Bluetooth Alert":
+          startBluetoothAlert();
+          break;
+        case "GPS Tracking":
+          startGPSTracking();
+          break;
+        case "Siren Mode":
+          startSiren();
+          break;
+        case "SOS Flash":
+          startFlash();
+          break;
+        default:
+          break;
+      }
     }
   };
+
+  // Bluetooth: best-effort request device to prompt Bluetooth permission
+  const startBluetoothAlert = async () => {
+    try {
+      const nav: any = navigator as any;
+      if (!nav || !nav.bluetooth) {
+        toast.error("Bluetooth API not available on this device/browser");
+        return;
+      }
+      await nav.bluetooth.requestDevice({ acceptAllDevices: true });
+      toast.success("Bluetooth alert request shown");
+    } catch (err: any) {
+      const msg = err?.message || "Bluetooth request cancelled or failed";
+      toast.error(msg);
+    }
+  };
+
+  // GPS: get current position once and copy coords to clipboard
+  const startGPSTracking = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation not supported");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const coords = `${pos.coords.latitude}, ${pos.coords.longitude}`;
+        try {
+          await navigator.clipboard.writeText(coords);
+          toast.success("Location captured and copied to clipboard", { description: coords });
+        } catch {
+          toast.success("Location captured", { description: coords });
+        }
+      },
+      (err) => {
+        toast.error(`Location error: ${err.message}`);
+      },
+      { enableHighAccuracy: true, maximumAge: 0 }
+    );
+  };
+
+  // Siren: use WebAudio oscillator
+  const startSiren = () => {
+    try {
+      if (audioCtxRef.current) return;
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.value = 1000;
+      gain.gain.value = 0.1;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      audioCtxRef.current = ctx;
+      oscillatorRef.current = osc;
+    } catch (err) {
+      toast.error("Unable to start siren");
+    }
+  };
+
+  const stopSiren = () => {
+    try {
+      if (oscillatorRef.current) {
+        oscillatorRef.current.stop();
+        oscillatorRef.current.disconnect();
+        oscillatorRef.current = null;
+      }
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close();
+        audioCtxRef.current = null;
+      }
+    } catch (err) {
+      // noop
+    }
+  };
+
+  // Flash: create overlay and flash it
+  const startFlash = () => {
+    try {
+      if (overlayRef.current) return;
+      const el = document.createElement("div");
+      el.style.position = "fixed";
+      el.style.left = "0";
+      el.style.top = "0";
+      el.style.right = "0";
+      el.style.bottom = "0";
+      el.style.zIndex = "9999";
+      el.style.pointerEvents = "none";
+      el.style.background = "white";
+      el.style.opacity = "0";
+      el.style.transition = "opacity 150ms linear";
+      document.body.appendChild(el);
+      overlayRef.current = el;
+      flashIntervalRef.current = window.setInterval(() => {
+        if (!overlayRef.current) return;
+        overlayRef.current.style.opacity = overlayRef.current.style.opacity === "1" ? "0" : "1";
+      }, 500) as unknown as number;
+    } catch (err) {
+      toast.error("Unable to start flash");
+    }
+  };
+
+  const stopFlash = () => {
+    try {
+      if (flashIntervalRef.current) {
+        clearInterval(flashIntervalRef.current);
+        flashIntervalRef.current = null;
+      }
+      if (overlayRef.current) {
+        overlayRef.current.remove();
+        overlayRef.current = null;
+      }
+    } catch (err) {
+      // noop
+    }
+  };
+
+  // cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopSiren();
+      stopFlash();
+    };
+  }, []);
 
   return (
     <div className="w-full">

@@ -8,6 +8,14 @@ export const NetworkStatus = () => {
   const [networkState, setNetworkState] = useState<NetworkState>("online");
   const [showAlert, setShowAlert] = useState(false);
 
+  const withAlpha = (color: string, alpha = 0.3) => {
+    // If color is an hsl(...) string, insert alpha using modern CSS syntax: hsl(... / alpha)
+    const hslMatch = color.match(/^(hsl\([^)]*)\)\s*$/);
+    if (hslMatch) return `${hslMatch[1]} / ${alpha})`;
+    // Fallback: return original color
+    return color;
+  };
+
   useEffect(() => {
     const checkConnection = () => {
       if (!navigator.onLine) {
@@ -92,7 +100,7 @@ export const NetworkStatus = () => {
         className={`relative inline-flex items-center gap-2 px-4 py-2 rounded-full overflow-hidden cursor-default ${config.textColor}`}
         style={{
           background: `linear-gradient(135deg, var(--tw-gradient-stops))`,
-          border: `1px solid ${config.glowColor} / 0.3`,
+          border: `1px solid ${withAlpha(config.glowColor, 0.3)}`,
         }}
       >
         <div className={`absolute inset-0 bg-gradient-to-r ${config.gradient}`} />

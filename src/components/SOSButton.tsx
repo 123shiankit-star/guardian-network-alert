@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Zap } from "lucide-react";
 import { toast } from "sonner";
+import { defaultContacts } from "./EmergencyContacts";
 
 interface SOSButtonProps {
   onActivate?: () => void;
@@ -26,9 +27,16 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
           description: "Alert sent to emergency contacts",
           duration: 5000,
         });
-        
+
         if (navigator.vibrate) {
           navigator.vibrate([200, 100, 200, 100, 200]);
+        }
+
+        // send alerts to emergency contacts
+        try {
+          sendAlerts();
+        } catch (err) {
+          // ignore
         }
       }
     }, 30);
@@ -43,6 +51,83 @@ export const SOSButton = ({ onActivate }: SOSButtonProps) => {
 
     document.addEventListener("mouseup", handleRelease);
     document.addEventListener("touchend", handleRelease);
+  };
+
+  const formatTel = (phone: string) => phone.replace(/[^+\d]/g, "");
+
+  const getPosition = (timeout = 4000) =>
+    new Promise<GeolocationPosition | null>((resolve) => {
+      if (!navigator.geolocation) return resolve(null);
+      let resolved = false;
+      const timer = window.setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          resolve(null);
+        }
+      }, timeout);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          if (!resolved) {
+            resolved = true;
+            clearTimeout(timer);
+            resolve(pos);
+          }
+        },
+        () => {
+          if (!resolved) {
+            resolved = true;
+            clearTimeout(timer);
+            resolve(null);
+          }
+        },
+        { enableHighAccuracy: true, maximumAge: 0 }
+      );
+    });
+
+  const sendAlerts = async () => {
+    const contacts = defaultContacts;
+    const pos = await getPosition(4000);
+    let loc = "";
+    if (pos) {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      loc = ` Location: https://maps.google.com/?q=${lat},${lon}`;
+    }
+
+    const message = `I am not safe. Call police.${loc}`;
+
+    try {
+      await navigator.clipboard?.writeText?.(message).catch(() => {});
+    } catch {}
+
+    // Try Web Share as a convenient fallback
+    if ((navigator as any).share) {
+      try {
+        await (navigator as any).share({ text: message });
+      } catch {
+        // user cancelled
+      }
+    }
+
+    // For each contact, try to open SMS and call for primary
+    contacts.forEach((c) => {
+      const tel = formatTel(c.phone);
+      if (!tel) return;
+      // SMS
+      try {
+        const smsUrl = `sms:${tel}?body=${encodeURIComponent(message)}`;
+        window.open(smsUrl, "_blank");
+      } catch {}
+      // If primary, try to initiate call as well
+      if (c.isPrimary) {
+        try {
+          const telUrl = `tel:${tel}`;
+          window.open(telUrl, "_self");
+        } catch {}
+      }
+    });
+
+    toast.success("Alert message prepared — SMS/Call prompts opened where supported", { duration: 6000 });
   };
 
   const cancelEmergency = () => {
